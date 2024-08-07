@@ -11,9 +11,9 @@ RUN apt-get update && \
 
 COPY requirements.txt .
 
-RUN apt-get update
-RUN apt-get install -y libgl1-mesa-glx
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN apt-get update && \
+    apt-get install -y libgl1-mesa-glx && \
+    pip3 install --no-cache-dir -r requirements.txt
 
 # Sao chép mã nguồn vào container
 COPY . .
