@@ -1,63 +1,50 @@
 import cv2
 import time
-from ultralytics import YOLO
+from predict import InferenceEngine
 
-onnx_model = YOLO(r"weights\yolov10s320.onnx")
+if __name__ == "__main__":
+    # Khởi tạo camera
+    cap = cv2.VideoCapture(0)
+    frame_shape = (1440, 720)
+    # cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))  # Codec MJPG
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, frame_shape[0])
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, frame_shape[1])
 
-# Open the video file
-cap = cv2.VideoCapture(0)
-# Thiết lập kích thước khung hình
-cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'RGB3'))
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1440)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-# Initialize variables for FPS calculation
-fps = 0
-frame_count = 0
-start_time = time.time()
+    # Sử dụng lớp InferenceEngine
+    model_path = 'weights/yolov10s320.onnx'
+    confidence_threshold = 0.7
+    input_shape = 320
+    engine = InferenceEngine(model_path, confidence_threshold, input_shape)
 
-# Loop through the video frames
-while cap.isOpened():
-    # Read a frame from the video
-    success, frame = cap.read()
+    # Biến để tính toán FPS
+    prev_frame_time = 0
+    new_frame_time = 0
 
-    if success:
-        # Measure the start time
-        start_tick = cv2.getTickCount()
-        # Run YOLOv8 inference on the frame
-        results = onnx_model(frame,  conf = 0.5, iou = 0.5, imgsz=320)
-
-        # Visualize the results on the frame
-        annotated_frame = results[0].plot()
-
-        # Calculate FPS
-        frame_count += 1
-        end_tick = cv2.getTickCount()
-        time_spent = (end_tick - start_tick) / cv2.getTickFrequency()
-        fps = 1 / time_spent
-        # print(fps)
-        # Display the FPS on the frame
-        cv2.putText(annotated_frame, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
-
-        # Display the annotated frame
-        cv2.imshow("YOLOv8 Inference", annotated_frame)
-        # cv2.imshow("YOLOv8 Inference", cv2.resize(annotated_frame,(720,960))
-        
-  
-        # Break the loop if 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+    while True:
+        # Đọc khung hình từ camera
+        ret, frame = cap.read()
+        if not ret:
+            print("Không thể lấy khung hình từ camera.")
             break
-       
-        
-    else:
-        # Break the loop if the end of the video is reached
-        break
 
-# Calculate average FPS
-end_time = time.time()
-total_time = end_time - start_time
-average_fps = frame_count / total_time
-print(f"Average FPS: {average_fps:.2f}")
+        # Xử lý khung hình
+        anno_frame = engine.predict(frame, frame_shape)
 
-# Release the video capture object and close the display window
-cap.release()
-cv2.destroyAllWindows()
+        # Tính toán FPS
+        new_frame_time = time.time()
+        fps = 1 / (new_frame_time - prev_frame_time)
+        prev_frame_time = new_frame_time
+
+        # Hiển thị FPS lên khung hình
+        cv2.putText(anno_frame, f'FPS: {fps:.2f}', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+
+        # Hiển thị khung hình
+        # cv2.imshow('Detection', anno_frame)
+
+        # Nhấn 'q' để thoát khỏi vòng lặp
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Giải phóng tài nguyên
+    cap.release()
+    cv2.destroyAllWindows()
