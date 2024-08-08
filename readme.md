@@ -15,6 +15,6 @@ pip install -r requirements.txt
 ```
 3. Run the detection:
 ```
-python3 raspbian_detect.py  
+python3 detect.py  
 ```
 
