@@ -1,5 +1,5 @@
 onnxruntime
 opencv-python < 4.8.0
-numpy
+numpy < 2
 pillow
 pytest
