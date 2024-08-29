@@ -12,9 +12,10 @@ if __name__ == "__main__":
 
     # Sử dụng lớp InferenceEngine
     model_path = 'weights/yolov10s320.onnx'
+    class_path = 'weights/classes.txt'
     confidence_threshold = 0.7
     input_shape = 320
-    engine = InferenceEngine(model_path, confidence_threshold, input_shape)
+    engine = InferenceEngine(model_path, class_path, confidence_threshold, input_shape)
 
     # Biến để tính toán FPS
     prev_frame_time = 0

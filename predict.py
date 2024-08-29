@@ -5,24 +5,20 @@ from PIL import Image
 import time
 
 class InferenceEngine:
-    def __init__(self, model_path, confidence_threshold, input_shape):
+    def __init__(self, model_path, class_path, confidence_threshold, input_shape):
         self.session = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
         self.input_shape = input_shape
         self.confidence_threshold = confidence_threshold
         # Danh sách các tên lớp đối tượng (điều chỉnh theo mô hình của bạn)
-        self.class_names = {
-                        0: '7up',
-                        1: 'coca',
-                        2: 'lemona',
-                        3: 'mat_ong',
-                        4: 'nhadam',
-                        5: 'olong',
-                        6: 'proby',
-                        7: 'revine',
-                        8: 'satori',
-                        9: 'warrior'
-                    }
-        
+        self.class_names = self.read_class(class_path)
+        print("class names : ", self.class_names)
+    
+    @staticmethod
+    def read_class(file_path):
+        with open(file_path, 'r') as file:
+            class_list = [line.strip() for line in file.readlines()]
+        return class_list
+    
     @staticmethod
     def opencv_to_pil(cv2_image):
         """
