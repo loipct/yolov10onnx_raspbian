@@ -9,9 +9,9 @@ class InferenceEngine:
         self.session = ort.InferenceSession(model_path, providers=['CPUExecutionProvider'])
         self.input_shape = input_shape
         self.confidence_threshold = confidence_threshold
-        # Danh sách các tên lớp đối tượng (điều chỉnh theo mô hình của bạn)
+        # List of object class names (adjust according to your model)
         self.class_names = self.read_class(class_path)
-        print("class names : ", self.class_names)
+        # print("class names : ", self.class_names)
     
     @staticmethod
     def read_class(file_path):
@@ -30,10 +30,10 @@ class InferenceEngine:
         Returns:
             PIL.Image.Image: The image in PIL format (RGB).
         """
-        # Chuyển đổi từ BGR sang RGB
+        # Convert from BGR to RGB
         rgb_image = cv2.cvtColor(cv2_image, cv2.COLOR_BGR2RGB)
         
-        # Chuyển đổi từ NumPy Array sang PIL Image
+        # Convert from NumPy Array to PIL Image
         pil_image = Image.fromarray(rgb_image)
         
         return pil_image
@@ -47,19 +47,18 @@ class InferenceEngine:
         """
         img = self.opencv_to_pil(image)
         
-        # Thay đổi kích thước hình ảnh để phù hợp với kích thước đầu vào của mô hình
-        img = img.resize((self.input_shape, self.input_shape))  # Hoặc kích thước đầu vào mong muốn của mô hình
+        # Resize the image to fit the model's input size
+        img = img.resize((self.input_shape, self.input_shape))  # Or the desired input size for the model
 
-        # Chuyển đổi hình ảnh thành mảng numpy và chuẩn bị dữ liệu đầu vào cho mô hình
+        # Convert the image to a NumPy array and prepare the input data for the model
         img = np.array(img).astype(np.float32)
-        img /= 255.0  # Normalize hình ảnh từ [0, 255] thành [0.0, 1.0]
+        img /= 255.0  # Normalize the image from [0, 255] to [0.0, 1.0]
 
-        # Thay đổi thứ tự kênh từ HWC sang CHW (Channel-Height-Width)
+        # Change the channel order from HWC to CHW (Channel-Height-Width)
         img = np.transpose(img, (2, 0, 1))
 
-        # Thêm chiều batch nếu cần
+        # Add a batch dimension if needed
         img = np.expand_dims(img, axis=0)
-
 
         return img
   
@@ -76,11 +75,11 @@ class InferenceEngine:
         input_name = self.get_input_name()
         output_name = self.get_output_name()
 
-        # Đảm bảo đầu vào có dạng mảng 4 chiều
+        # Ensure the input is in 4D array format
         inputs = {input_name: input_tensor}
         outputs = self.session.run([output_name], inputs)
         
-        # Trả về mảng đầu ra mà không cần flatten
+        # Return the output array without flattening
         return outputs[0]
 
     def filter_detections(self, results, image_shape):
